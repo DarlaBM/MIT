@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="MIT">
+<meta name="theme-color" content="#1c1c1e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.jpg">
+<title>MIT</title>
+<style>
+  :root{
+    --bg:#1c1c1e; --card:#2c2c2e; --card2:#3a3a3c; --line:#48484a;
+    --txt:#ffffff; --sub:#98989f; --accent:#0a84ff; --accent-press:#0060df;
+    --term-bg:#0b0f0b; --term-fg:#39ff6a; --danger:#ff453a; --ok:#30d158;
+    --radius:14px; --safe-top:env(safe-area-inset-top,0px);
+    --safe-bot:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    background:var(--bg); color:var(--txt);
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  button{font-family:inherit;}
+
+  /* ---------- LOGIN ---------- */
+  #login{
+    position:fixed; inset:0; z-index:50; background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:calc(var(--safe-top) + 24px) 28px calc(var(--safe-bot) + 24px);
+    transition:opacity .25s ease;
+  }
+  #login .logo{width:84px;height:84px;border-radius:20px;overflow:hidden;
+     box-shadow:0 10px 30px rgba(0,0,0,.45);margin-bottom:22px;}
+  #login .logo img{width:100%;height:100%;object-fit:cover;display:block;}
+  #login h1{font-size:22px;font-weight:600;margin:0 0 4px;letter-spacing:-.3px;}
+  #login p{color:var(--sub);font-size:14px;margin:0 0 30px;}
+  .field{width:100%;max-width:340px;}
+  .field input{
+    width:100%;height:52px;border:none;border-radius:var(--radius);
+    background:var(--card);color:var(--txt);font-size:17px;padding:0 16px;
+    outline:none;border:1.5px solid transparent;transition:border-color .15s;
+  }
+  .field input:focus{border-color:var(--accent);}
+  .btn-primary{
+    width:100%;max-width:340px;height:52px;margin-top:14px;border:none;
+    border-radius:var(--radius);background:var(--accent);color:#fff;
+    font-size:17px;font-weight:600;cursor:pointer;transition:transform .08s,background .15s;
+  }
+  .btn-primary:active{transform:scale(.98);background:var(--accent-press);}
+  #loginErr{color:var(--danger);font-size:13px;height:18px;margin-top:12px;text-align:center;}
+
+  /* ---------- APP SHELL ---------- */
+  #app{display:none;min-height:100%;flex-direction:column;}
+  header{
+    position:sticky;top:0;z-index:20;background:var(--bg);
+    padding:calc(var(--safe-top) + 10px) 16px 10px;
+    display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);
+  }
+  header .mark{width:34px;height:34px;border-radius:9px;overflow:hidden;flex:0 0 auto;}
+  header .mark img{width:100%;height:100%;object-fit:cover;display:block;}
+  header .title{font-size:17px;font-weight:600;flex:1;letter-spacing:-.2px;}
+  header .title small{display:block;font-size:11px;color:var(--sub);font-weight:400;}
+  .ham{width:38px;height:38px;border:none;background:transparent;cursor:pointer;
+    display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0 8px;}
+  .ham span{height:2px;background:var(--txt);border-radius:2px;transition:.2s;}
+
+  main{flex:1;background:#f2f2f7;color:#000;border-radius:22px 22px 0 0;
+    margin-top:6px;padding:22px 16px calc(var(--safe-bot) + 40px);}
+  .lbl{font-size:12px;font-weight:600;color:#6c6c70;text-transform:uppercase;
+    letter-spacing:.6px;margin:0 4px 8px;}
+  .code-input{
+    width:100%;height:64px;border:none;border-radius:var(--radius);
+    background:#fff;color:#000;font-size:30px;font-weight:600;text-align:center;
+    letter-spacing:10px;outline:none;border:2px solid transparent;
+    transition:border-color .15s;font-variant-numeric:tabular-nums;
+  }
+  .code-input:focus{border-color:var(--accent);}
+  .hint{font-size:12px;color:#8e8e93;margin:8px 4px 0;text-align:center;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
+  .opt{
+    background:#fff;border:2px solid transparent;border-radius:var(--radius);
+    padding:14px 12px;text-align:left;cursor:pointer;transition:.12s;
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .opt .o-name{font-size:16px;font-weight:600;color:#000;}
+  .opt .o-desc{font-size:11px;color:#8e8e93;}
+  .opt:active{transform:scale(.98);}
+  .opt.sel{border-color:var(--accent);background:#eaf4ff;}
+  .opt.sel .o-name{color:var(--accent-press);}
+  .opt.wide{grid-column:1 / -1;}
+
+  .adv-toggle{background:transparent;border:none;color:var(--accent);font-size:14px;
+    font-weight:600;padding:14px 4px 6px;cursor:pointer;width:100%;text-align:left;}
+  #advBox{display:none;}
+  #advBox.open{display:block;}
+  .num-wrap{margin-top:10px;display:none;}
+  .num-wrap.show{display:block;}
+  .num-input{width:100%;height:52px;border:none;border-radius:var(--radius);background:#fff;
+    color:#000;font-size:18px;text-align:center;outline:none;border:2px solid transparent;
+    font-variant-numeric:tabular-nums;}
+  .num-input:focus{border-color:var(--accent);}
+
+  .gen-btn{width:100%;height:56px;margin-top:20px;border:none;border-radius:var(--radius);
+    background:var(--accent);color:#fff;font-size:18px;font-weight:600;cursor:pointer;
+    transition:transform .08s,background .15s;}
+  .gen-btn:active{transform:scale(.99);background:var(--accent-press);}
+  .gen-btn:disabled{background:#c7c7cc;color:#fff;}
+
+  .result{margin-top:22px;display:none;}
+  .result.show{display:block;animation:rise .28s ease;}
+  @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .term{background:var(--term-bg);border-radius:var(--radius);padding:18px 16px;
+    border:1px solid #1e2a1e;}
+  .term .tl{color:#5c7a5c;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;}
+  .term .key{color:var(--term-fg);font-size:34px;font-weight:600;letter-spacing:3px;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;text-shadow:0 0 12px rgba(57,255,106,.4);
+    word-break:break-all;}
+  .term .meta{color:#5c7a5c;font-size:12px;margin-top:8px;font-family:"SF Mono",ui-monospace,Menlo,monospace;}
+  .copy-btn{width:100%;height:48px;margin-top:12px;border:none;border-radius:var(--radius);
+    background:#fff;color:var(--accent);font-size:16px;font-weight:600;cursor:pointer;border:1.5px solid #d1d1d6;}
+  .copy-btn:active{background:#f2f2f7;}
+  .err-msg{background:#fff2f1;color:var(--danger);border-radius:var(--radius);padding:14px 16px;
+    font-size:14px;font-weight:500;margin-top:16px;display:none;}
+  .err-msg.show{display:block;}
+
+  /* ---------- MENU DRAWER ---------- */
+  #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:30;opacity:0;
+    pointer-events:none;transition:opacity .2s;}
+  #scrim.open{opacity:1;pointer-events:auto;}
+  #drawer{position:fixed;top:0;right:0;bottom:0;width:82%;max-width:340px;z-index:40;
+    background:var(--bg);transform:translateX(100%);transition:transform .25s ease;
+    padding:calc(var(--safe-top) + 20px) 20px calc(var(--safe-bot) + 20px);overflow-y:auto;}
+  #drawer.open{transform:none;}
+  #drawer h2{font-size:20px;margin:0 0 4px;}
+  #drawer .close{position:absolute;top:calc(var(--safe-top) + 16px);right:16px;background:transparent;
+    border:none;color:var(--sub);font-size:26px;cursor:pointer;line-height:1;}
+  .seg{display:flex;background:var(--card);border-radius:10px;padding:3px;margin:16px 0 24px;}
+  .seg button{flex:1;height:36px;border:none;background:transparent;color:var(--sub);
+    font-size:14px;font-weight:600;border-radius:8px;cursor:pointer;transition:.15s;}
+  .seg button.on{background:var(--accent);color:#fff;}
+  .help-item{border-top:1px solid var(--line);padding:14px 2px;}
+  .help-item:first-of-type{border-top:none;}
+  .help-item h3{font-size:15px;margin:0 0 3px;color:var(--txt);}
+  .help-item p{font-size:13px;color:var(--sub);margin:0;line-height:1.45;}
+  .drawer-foot{color:#636366;font-size:11px;margin-top:24px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="logo"><img src="icon-512.png" alt="MIT"></div>
+  <h1 data-i18n="appName">MIT</h1>
+  <p data-i18n="loginSub">Gerador de chave de acesso</p>
+  <div class="field">
+    <input id="pwd" type="password" inputmode="text" autocomplete="off"
+           data-i18n-ph="pwdPh" placeholder="Senha de acesso">
+  </div>
+  <button class="btn-primary" id="loginBtn" data-i18n="enter">Entrar</button>
+  <div id="loginErr"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="mark"><img src="icon-192.png" alt="MIT"></div>
+    <div class="title">MIT<small data-i18n="subtitle">Gerador de chave · MIT</small></div>
+    <button class="ham" id="hamBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+  </header>
+
+  <main>
+    <div class="lbl" data-i18n="codeLabel">Código da máquina</div>
+    <input id="code" class="code-input" inputmode="numeric" pattern="[0-9]*"
+           maxlength="4" placeholder="0000" autocomplete="off">
+    <div class="hint" data-i18n="codeHint">4 dígitos, exibidos na tela da máquina</div>
+
+    <div class="lbl" style="margin-top:22px" data-i18n="levelLabel">Nível de acesso</div>
+    <div class="grid" id="optGrid"></div>
+
+    <button class="adv-toggle" id="advToggle" data-i18n="advanced">Opções avançadas ▾</button>
+    <div id="advBox">
+      <div class="grid" id="advGrid"></div>
+      <div class="num-wrap" id="numWrap">
+        <div class="lbl" id="numLbl" data-i18n="customValue">Valor da opção</div>
+        <input id="numVal" class="num-input" inputmode="numeric" pattern="[0-9]*" placeholder="0">
+      </div>
+    </div>
+
+    <button class="gen-btn" id="genBtn" data-i18n="generate">Gerar chave</button>
+
+    <div class="err-msg" id="errMsg"></div>
+
+    <div class="result" id="result">
+      <div class="term">
+        <div class="tl" data-i18n="keyTitle">Chave de acesso</div>
+        <div class="key" id="keyOut">—</div>
+        <div class="meta" id="keyMeta"></div>
+      </div>
+      <button class="copy-btn" id="copyBtn" data-i18n="copy">Copiar chave</button>
+    </div>
+  </main>
+</div>
+
+<!-- MENU -->
+<div id="scrim"></div>
+<div id="drawer">
+  <button class="close" id="drawerClose">&times;</button>
+  <h2 data-i18n="menu">Menu</h2>
+
+  <div class="lbl" style="color:var(--sub);margin-top:18px" data-i18n="language">Idioma</div>
+  <div class="seg">
+    <button data-lang="pt" class="on">PT</button>
+    <button data-lang="en">EN</button>
+  </div>
+
+  <div class="lbl" style="color:var(--sub)" data-i18n="help">Ajuda</div>
+  <div id="helpList"></div>
+
+  <div class="drawer-foot" id="foot"></div>
+</div>
+
+<script>
+/* =========================================================================
+   VOLMAQ KEY GENERATOR
+   Algoritmo extraído por engenharia reversa de VolmaqChave.Form1.Chave()
+   (assembly .NET/VB WinForms). Validado: transcrição IL -> port C# -> port JS,
+   idênticos em todas as 9999 x 6 combinações. Confira UM código contra um
+   print da máquina real antes de usar em produção.
+   ========================================================================= */
+
+// >>> AJUSTE A SENHA DE ACESSO DO APP AQUI <<<
+var ACCESS_PASSWORD = "Ims3609";  // troque pelo que preferir
+
+function volmaqKey(cod, option){
+  cod = cod|0; option = option|0;
+  var c = 10000 - cod;
+  var d0 = c & 15;           if(d0===0) d0=1;
+  var d1 = (c & 0xf0)>>4;    if(d1===0) d1=1;
+  var d2 = (c & 0xf00)>>8;   if(d2===0) d2=1;
+  var d3 = (c & 0xf000)>>12; if(d3===0) d3=1;
+  var o0 = (d0*(d1+d2+d3)) & 0xff;
+  var o1 = ((d1*(d0+d2+d3)) & 0xff) * 0x100;
+  var o2 = ((d2*(d0+d1+d3)) & 0xff) * 0x10000;
+  var o3 = ((d3*(d0+d1+d2)) & 0xff) * 0x1000000;
+  var V = o0 + o1 + o2 + o3;              // bytes disjuntos: soma == OR
+  var g = 0;
+  while (V > 999999999){ V = Math.floor(V/2); if(++g>300) break; }
+  g = 0;
+  while (V > 0 && V < 100000000){ V = V*2; if(++g>300) break; }
+  V = V - (V % 4096);                     // zera 12 bits baixos (& 0xFFFFF000)
+  V = V + (option % 4096);                // OR opção nos bits baixos
+  return V >>> 0;
+}
+
+/* ---------- opções (código do binário) ---------- */
+var LEVELS = [
+  {id:"ihm", code:0, nome:"IHM"},
+  {id:"plc", code:1, nome:"PLC"},
+  {id:"ope", code:2, nome:"Operador"},
+  {id:"sup", code:3, nome:"Supervisor"},
+  {id:"fab", code:4, nome:"Fábrica"}
+];
+var ADV = [
+  {id:"ctrl_off", code:9, nome:"Ctrl Operador OFF"},
+  {id:"ctrl_on", code:-1, nome:"Ctrl Operador ON", needsValue:true},
+  {id:"outros",  code:-1, nome:"Outros (código)",  needsValue:true}
+];
+
+/* ---------- i18n ---------- */
+var I18N = {
+  pt:{
+    appName:"MIT", loginSub:"Gerador de chave de acesso",
+    pwdPh:"Senha de acesso", enter:"Entrar", subtitle:"Gerador de chave · MIT",
+    codeLabel:"Código da máquina", codeHint:"4 dígitos, exibidos na tela da máquina",
+    levelLabel:"Nível de acesso", advanced:"Opções avançadas ▾", generate:"Gerar chave",
+    keyTitle:"Chave de acesso", copy:"Copiar chave", copied:"Copiado ✓",
+    menu:"Menu", language:"Idioma", help:"Ajuda", customValue:"Valor da opção",
+    errPwd:"Senha incorreta.",
+    errCode:"Informe um código de 1 a 9999.",
+    errVal:"Informe o valor da opção.",
+    selectLevel:"Selecione um nível de acesso.",
+    descIhm:"Senha de acesso à IHM (interface de operação).",
+    descPlc:"Senha de acesso ao CLP.",
+    descOpe:"Senha de nível operador.",
+    descSup:"Senha de nível supervisor.",
+    descFab:"Senha de nível fábrica (acesso total).",
+    descCtrl_off:"Desabilita o controle do operador.",
+    descCtrl_on:"Habilita o controle do operador (informe o valor).",
+    descOutros:"Código de opção livre para bits baixos (uso técnico).",
+    footNote:"Chave calculada localmente. Nenhum dado sai do dispositivo. Confira contra a máquina antes de usar em produção."
+  },
+  en:{
+    appName:"MIT", loginSub:"Access key generator",
+    pwdPh:"Access password", enter:"Sign in", subtitle:"Key generator · MIT",
+    codeLabel:"Machine code", codeHint:"4 digits, shown on the machine screen",
+    levelLabel:"Access level", advanced:"Advanced options ▾", generate:"Generate key",
+    keyTitle:"Access key", copy:"Copy key", copied:"Copied ✓",
+    menu:"Menu", language:"Language", help:"Help", customValue:"Option value",
+    errPwd:"Wrong password.",
+    errCode:"Enter a code from 1 to 9999.",
+    errVal:"Enter the option value.",
+    selectLevel:"Select an access level.",
+    descIhm:"HMI (operator interface) access password.",
+    descPlc:"PLC access password.",
+    descOpe:"Operator-level password.",
+    descSup:"Supervisor-level password.",
+    descFab:"Factory-level password (full access).",
+    descCtrl_off:"Disables operator control.",
+    descCtrl_on:"Enables operator control (enter value).",
+    descOutros:"Free option code for low bits (technical use).",
+    footNote:"Key computed locally. No data leaves the device. Verify against the machine before production use."
+  }
+};
+var lang = "pt";
+function t(k){ return (I18N[lang] && I18N[lang][k]) || k; }
+
+function applyI18n(){
+  document.documentElement.lang = lang==="pt"?"pt-BR":"en";
+  document.querySelectorAll("[data-i18n]").forEach(function(el){
+    el.textContent = t(el.getAttribute("data-i18n"));
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(function(el){
+    el.placeholder = t(el.getAttribute("data-i18n-ph"));
+  });
+  buildOptions(); buildHelp();
+  document.getElementById("foot").textContent = t("footNote");
+}
+
+/* ---------- state ---------- */
+var selected = null; // {code, needsValue, id}
+
+/* ---------- build option buttons ---------- */
+function localName(o){
+  var map = {ope:"Operador",sup:"Supervisor",fab:"Fábrica",ihm:"IHM",plc:"PLC",
+             ctrl_off:"Ctrl Op. OFF",ctrl_on:"Ctrl Op. ON",outros: lang==="pt"?"Outros":"Other"};
+  return map[o.id]||o.nome;
+}
+function descFor(o){
+  var k = {ihm:"descIhm",plc:"descPlc",ope:"descOpe",sup:"descSup",fab:"descFab",
+           ctrl_off:"descCtrl_off",ctrl_on:"descCtrl_on",outros:"descOutros"}[o.id];
+  return t(k);
+}
+function buildOptions(){
+  var grid = document.getElementById("optGrid"); grid.innerHTML="";
+  LEVELS.forEach(function(o){ grid.appendChild(optEl(o)); });
+  var ag = document.getElementById("advGrid"); ag.innerHTML="";
+  ADV.forEach(function(o){ var e=optEl(o); if(o.id==="ctrl_off") e.classList.add("wide"); ag.appendChild(e); });
+}
+function optEl(o){
+  var b=document.createElement("button");
+  b.className="opt"+(selected&&selected.id===o.id?" sel":"");
+  b.innerHTML='<span class="o-name">'+localName(o)+'</span><span class="o-desc">'+descFor(o)+'</span>';
+  b.onclick=function(){ selectOpt(o); };
+  return b;
+}
+function selectOpt(o){
+  selected = {id:o.id, code:o.code, needsValue:!!o.needsValue};
+  buildOptions();
+  var nw=document.getElementById("numWrap");
+  if(o.needsValue){ nw.classList.add("show"); document.getElementById("advBox").classList.add("open");
+    document.getElementById("advToggle").textContent=t("advanced").replace("▾","▴"); }
+  else nw.classList.remove("show");
+  hideResult();
+}
+
+/* ---------- help ---------- */
+function buildHelp(){
+  var list=document.getElementById("helpList"); list.innerHTML="";
+  LEVELS.concat(ADV).forEach(function(o){
+    var d=document.createElement("div"); d.className="help-item";
+    d.innerHTML="<h3>"+localName(o)+"</h3><p>"+descFor(o)+"</p>";
+    list.appendChild(d);
+  });
+}
+
+/* ---------- generate ---------- */
+function hideResult(){ document.getElementById("result").classList.remove("show"); }
+function showErr(msg){
+  var e=document.getElementById("errMsg"); e.textContent=msg; e.classList.add("show");
+  hideResult();
+}
+function clearErr(){ document.getElementById("errMsg").classList.remove("show"); }
+
+function doGenerate(){
+  clearErr();
+  var raw = document.getElementById("code").value.trim();
+  var cod = parseInt(raw,10);
+  if(!raw || isNaN(cod) || cod<1 || cod>9999){ showErr(t("errCode")); return; }
+  if(!selected){ showErr(t("selectLevel")); return; }
+  var option = selected.code;
+  if(selected.needsValue){
+    var v = parseInt(document.getElementById("numVal").value.trim(),10);
+    if(isNaN(v) || v<0){ showErr(t("errVal")); return; }
+    option = v;
+  }
+  var key = volmaqKey(cod, option);
+  document.getElementById("keyOut").textContent = key;
+  document.getElementById("keyMeta").textContent =
+     "cod " + ("000"+cod).slice(-4) + "  ·  " + localName(findOpt(selected.id)) +
+     (selected.needsValue ? " ("+option+")" : "");
+  document.getElementById("result").classList.add("show");
+  document.getElementById("result").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function findOpt(id){ return LEVELS.concat(ADV).filter(function(o){return o.id===id;})[0]; }
+
+/* ---------- login ---------- */
+function tryLogin(){
+  var v=document.getElementById("pwd").value;
+  if(v===ACCESS_PASSWORD){
+    document.getElementById("login").style.opacity="0";
+    setTimeout(function(){ document.getElementById("login").style.display="none";
+      document.getElementById("app").style.display="flex"; },250);
+  } else {
+    document.getElementById("loginErr").textContent=t("errPwd");
+    document.getElementById("pwd").value="";
+  }
+}
+
+/* ---------- menu ---------- */
+function openMenu(){ document.getElementById("scrim").classList.add("open");
+  document.getElementById("drawer").classList.add("open"); }
+function closeMenu(){ document.getElementById("scrim").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open"); }
+
+/* ---------- wire up ---------- */
+document.getElementById("loginBtn").onclick=tryLogin;
+document.getElementById("pwd").addEventListener("keydown",function(e){ if(e.key==="Enter")tryLogin(); });
+document.getElementById("hamBtn").onclick=openMenu;
+document.getElementById("drawerClose").onclick=closeMenu;
+document.getElementById("scrim").onclick=closeMenu;
+document.getElementById("genBtn").onclick=doGenerate;
+document.getElementById("code").addEventListener("keydown",function(e){ if(e.key==="Enter")doGenerate(); });
+document.getElementById("advToggle").onclick=function(){
+  var box=document.getElementById("advBox"); box.classList.toggle("open");
+  this.textContent = t("advanced").replace("▾", box.classList.contains("open")?"▴":"▾");
+};
+document.getElementById("copyBtn").onclick=function(){
+  var self=this, key=document.getElementById("keyOut").textContent;
+  var done=function(){ self.textContent=t("copied"); setTimeout(function(){ self.textContent=t("copy"); },1400); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(key).then(done,done); }
+  else { var ta=document.createElement("textarea"); ta.value=key; document.body.appendChild(ta);
+         ta.select(); try{document.execCommand("copy");}catch(e){} document.body.removeChild(ta); done(); }
+};
+document.querySelectorAll("[data-lang]").forEach(function(b){
+  b.onclick=function(){
+    lang=b.getAttribute("data-lang");
+    document.querySelectorAll("[data-lang]").forEach(function(x){x.classList.toggle("on",x===b);});
+    applyI18n();
+  };
+});
+
+applyI18n();
+
+/* ---------- service worker (offline) ---------- */
+if("serviceWorker" in navigator && navigator.serviceWorker && navigator.serviceWorker.register){
+  window.addEventListener("load",function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
+</script>
+</body>
+</html>
